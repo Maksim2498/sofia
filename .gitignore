@@ -1,0 +1,13 @@
+# CMake
+/build
+/cmake-build-debug
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
+
+# Misc
+/notes
