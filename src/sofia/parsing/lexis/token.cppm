@@ -75,10 +75,6 @@ export namespace sofia {
         }
 
     private:
-        value_type m_value;
-        std::optional<source_reference> m_reference;
-        token_type m_type;
-
         // Validation
 
         static bool m_type_matching_value(const token_type type, const value_type &value) {
@@ -126,6 +122,12 @@ export namespace sofia {
                     return std::holds_alternative<std::monostate>(value);
             }
         }
+
+        // Fields
+
+        value_type m_value;
+        std::optional<source_reference> m_reference;
+        token_type m_type;
     };
 }
 
