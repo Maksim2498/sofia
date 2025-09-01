@@ -13,9 +13,34 @@ int main() {
     tokenizer tokenizer(source, &string_pool, &messages);
     const auto tokens = tokenizer.read_all(true);
 
-    println("Tokens:");
+    if (tokens.empty())
+        println("No tokens");
+    else {
+        println("Tokens:");
 
-    for (const auto &token : tokens) {
-        println(" - {}", token);
+        for (const auto &token : tokens)
+            println(" - {}", token);
+    }
+
+    println("");
+
+    if (messages.empty())
+        println("No messages");
+    else {
+        println("Messages:");
+
+        for (const auto &message : messages)
+            println(" - {}", message);
+    }
+
+    println("");
+
+    if (string_pool.empty())
+        println("No strings");
+    else {
+        println("Strings:");
+
+        for (const auto &string : string_pool)
+            println(" - {}", string);
     }
 }
