@@ -26,7 +26,7 @@ export namespace sofia {
 
         // Parsing
 
-        [[nodiscard]] ast_node::ptr parse(const sv8 source) const noexcept {
+        [[nodiscard]] ast_node *parse(const sv8 source) const noexcept {
             tokenizer tokenizer(source, m_string_pool, m_messages);
             ast_builder ast_builder(tokenizer, m_string_pool, m_messages);
 
@@ -49,7 +49,7 @@ export namespace sofia {
 
     private:
         // Fields
-        
+
         sofia::string_pool *m_string_pool;
         std::vector<source_message> *m_messages;
         sofia::tokenizer_config m_tokenizer_config;

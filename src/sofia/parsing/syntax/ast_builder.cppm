@@ -24,7 +24,7 @@ export namespace sofia {
 
         // Building
 
-        [[nodiscard]] ast_node::ptr build() noexcept {
+        [[nodiscard]] ast_node *build() noexcept {
             // TODO
             return nullptr;
         }
