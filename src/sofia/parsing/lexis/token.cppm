@@ -96,6 +96,11 @@ export namespace sofia {
                     return std::holds_alternative<f64>(value);
 
                 case token_type::COMMENT:
+
+                case token_type::INDENT_SAME:
+                case token_type::INDENT_GROW:
+                case token_type::INDENT_SHRINK:
+
                 case token_type::ID:
 
                 case token_type::S8:
