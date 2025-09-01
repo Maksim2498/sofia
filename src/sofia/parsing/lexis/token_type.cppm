@@ -44,7 +44,7 @@ export namespace sofia {
         // - Types
 
         THIS,
-        INIT, CONSTRUCTOR,
+        INIT, CONSTRUCT, FINALIZE,
         TYPE, STRUCT, ENUM,
         IS, AS, BY,
         PUB, PRIV, PROT,
@@ -54,6 +54,10 @@ export namespace sofia {
         // - Evaluation control
 
         ANYTIME, COMTIME, RUNTIME,
+
+        // - Non-linear flow control
+
+        DEFER,
 
         // - Branching
 
@@ -166,7 +170,8 @@ export namespace sofia {
             case token_type::THIS: return "\"this\"";
 
             case token_type::INIT: return "\"init\"";
-            case token_type::CONSTRUCTOR: return "\"construct\"";
+            case token_type::CONSTRUCT: return "\"construct\"";
+            case token_type::FINALIZE: return "\"finalize\"";
 
             case token_type::TYPE: return "\"type\"";
             case token_type::STRUCT: return "\"struct\"";
@@ -189,6 +194,10 @@ export namespace sofia {
             case token_type::ANYTIME: return "\"anytime\"";
             case token_type::COMTIME: return "\"comtime\"";
             case token_type::RUNTIME: return "\"runtime\"";
+
+            // - Non-linear flow control
+
+            case token_type::DEFER: return "\"defer\"";
 
             // - Branching
 
