@@ -46,6 +46,8 @@ export namespace sofia {
         {}
 
     private:
+        // Fields
+        
         std::optional<source_reference> m_reference;
         tag_map m_tags;
     };

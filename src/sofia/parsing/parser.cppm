@@ -48,6 +48,8 @@ export namespace sofia {
         void tokenizer_config(const sofia::tokenizer_config &config) noexcept { m_tokenizer_config = config; }
 
     private:
+        // Fields
+        
         sofia::string_pool *m_string_pool;
         std::vector<source_message> *m_messages;
         sofia::tokenizer_config m_tokenizer_config;

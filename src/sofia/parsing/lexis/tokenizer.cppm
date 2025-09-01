@@ -148,6 +148,8 @@ export namespace sofia {
         }
 
     private:
+        // Fields
+
         std::vector<usize> m_indents;
         tokenizer_config m_config;
         sv8 m_source;

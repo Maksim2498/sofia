@@ -44,6 +44,8 @@ export namespace sofia {
         void string_pool(sofia::string_pool *string_pool) noexcept { m_string_pool = string_pool; }
 
     private:
+        // Fields
+
         sofia::tokenizer *m_tokenizer;
         sofia::string_pool *m_string_pool;
         std::vector<source_message> *m_messages;
