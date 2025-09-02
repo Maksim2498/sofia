@@ -12,7 +12,8 @@ import <utility>;
 import sofia.util.typedefs;
 
 export namespace sofia {
-    template<typename T>
+    template<typename T, usize MaxValueSize = sizeof(T)>
+    requires (MaxValueSize >= sizeof(T))
     class chunked_arena {
         struct m_chunk;
 
@@ -48,7 +49,7 @@ export namespace sofia {
 
             // Operators
 
-            [[nodiscard]] reference operator*() const noexcept { return *(m_chunk->data() + m_value_index); }
+            [[nodiscard]] reference operator*() const noexcept { return (*m_chunk)[m_value_index]; }
             [[nodiscard]] pointer operator->() const noexcept { return &**this; }
 
             iterator &operator++() noexcept {
@@ -159,6 +160,10 @@ export namespace sofia {
 
         static_assert(std::forward_iterator<const_iterator>);
 
+        // Constants
+
+        static constexpr usize MAX_VALUE_SIZE = MaxValueSize;
+
         // Constructors
 
         explicit chunked_arena(const usize chunk_size = 256) noexcept : m_chunk_size(chunk_size) { assert(chunk_size); }
@@ -202,6 +207,18 @@ export namespace sofia {
 
         // Size
 
+        [[nodiscard]] usize memory_footprint() const noexcept {
+            const usize chunk_count = this->chunk_count();
+            const usize total_chunk_headers_size = sizeof(m_chunk) * chunk_count;
+            const usize total_chunk_data_size = m_last_chunk != nullptr
+                ? m_chunk_size * (chunk_count - 1) + m_last_chunk_size
+                : 0;
+            const usize total_chunks_size = total_chunk_headers_size + total_chunk_data_size;
+            const usize footprint = sizeof(m_chunk) * total_chunks_size;
+
+            return footprint;
+        }
+
         [[nodiscard]] usize chunk_count() const noexcept {
             usize count = 0;
 
@@ -213,6 +230,8 @@ export namespace sofia {
 
         [[nodiscard]] usize chunk_size() const noexcept { return m_chunk_size; }
         [[nodiscard]] usize last_chunk_size() const noexcept { return m_chunk_size; }
+
+        [[nodiscard]] usize max_value_size() const noexcept { return MAX_VALUE_SIZE; }
 
         [[nodiscard]] size_type size() const noexcept {
             return m_last_chunk != nullptr
@@ -226,29 +245,45 @@ export namespace sofia {
 
         // Modifiers
 
+        template<typename As = value_type>
         reference push_back(const_reference value) {
             m_add_chunk_if_needed();
-            auto &new_value = m_last_chunk->emplace_back(m_last_chunk_size, value);
+
+            auto &new_value = m_last_chunk->template emplace_back<As>(m_last_chunk_size, value);
+
             ++m_last_chunk_size;
+            on_added(new_value);
+
             return new_value;
         }
 
+        template<typename As = value_type>
         reference push_back(value_type &&value) {
             m_add_chunk_if_needed();
-            auto &new_value = m_last_chunk->emplace_back(m_last_chunk_size, std::move(value));
+
+            auto &new_value = m_last_chunk->template emplace_back<As>(m_last_chunk_size, std::move(value));
+
             ++m_last_chunk_size;
+            on_added(new_value);
+
             return new_value;
         }
 
-        template <class ...Args>
+        template<typename As = value_type, typename ...Args>
         reference emplace_back(Args &&...args) {
             m_add_chunk_if_needed();
-            auto &new_value = m_last_chunk->emplace_back(m_last_chunk_size, std::forward<Args>(args)...);
+
+            auto &new_value = m_last_chunk->template emplace_back<As>(m_last_chunk_size, std::forward<Args>(args)...);
+
             ++m_last_chunk_size;
+            on_added(new_value);
+
             return new_value;
         }
 
         void clear() noexcept {
+            on_pre_clear();
+
             m_chunk *current_chunk = m_last_chunk;
 
             while (current_chunk != nullptr) {
@@ -265,6 +300,8 @@ export namespace sofia {
             }
 
             m_last_chunk = nullptr;
+
+            on_post_clear();
         }
 
         // Operators
@@ -279,30 +316,41 @@ export namespace sofia {
             return *this;
         }
 
+    protected:
+        // Events
+
+        void on_added(reference &new_value) {}
+
+        void on_pre_clear() {}
+        void on_post_clear() {}
+
     private:
         // Types
 
         struct m_chunk {
-            // Iterators
+            // Accessors
 
-            const value_type *cdata() const noexcept { return static_cast<m_chunk*>(this)->data(); }
-            const value_type *data() const noexcept { return cdata(); }
+            const_reference operator[](const usize index) const noexcept {
+                return const_cast<m_chunk&>(*this)[index];
+            }
 
-            value_type *data() noexcept {
-                return reinterpret_cast<value_type*>(reinterpret_cast<char*>(this) + sizeof(m_chunk));
+            reference operator[](const usize index) noexcept {
+                return *reinterpret_cast<value_type*>(
+                    reinterpret_cast<char*>(this) + sizeof(m_chunk) + index * MaxValueSize
+                );
             }
 
             // Modifiers
 
             void clear(const usize size) noexcept {
                 if (!std::is_trivially_destructible_v<value_type>)
-                    for (auto it = data(), end = it + size; it != end; ++it)
-                        it->~value_type();
+                    for (usize i = 0; i < size; ++i)
+                        (*this)[i].~value_type();
             }
 
-            template<typename ...Args>
-            value_type &emplace_back(usize size, Args &&...args) {
-                value_type *new_value = new(data() + size) value_type(std::forward<Args>(args)...);
+            template<typename As = T, typename ...Args>
+            reference emplace_back(const usize size, Args &&...args) {
+                value_type *new_value = new(&(*this)[size]) As(std::forward<Args>(args)...);
                 return *new_value;
             }
 
@@ -319,7 +367,7 @@ export namespace sofia {
         }
 
         void m_add_chunk() {
-            const auto data_size = m_chunk_size * sizeof(value_type);
+            const auto data_size = m_chunk_size * MaxValueSize;
             const auto new_chunk_size = sizeof(m_chunk) + data_size;
             const auto new_last_chunk = reinterpret_cast<m_chunk*>(new char[new_chunk_size]);
 
@@ -330,7 +378,8 @@ export namespace sofia {
         }
 
         bool m_need_new_chunk() const noexcept {
-            return m_last_chunk == nullptr || m_last_chunk_size >= m_chunk_size;
+            return m_last_chunk == nullptr
+                || m_last_chunk_size >= m_chunk_size;
         }
 
         void m_copy_from(const chunked_arena &other) {
