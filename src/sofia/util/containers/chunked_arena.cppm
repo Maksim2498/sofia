@@ -5,17 +5,11 @@ module;
 export module sofia.util.containers.chunked_arena;
 
 import <algorithm>;
-import <list>;
 import <memory>;
 import <type_traits>;
 import <utility>;
-import <vector>;
 
 import sofia.util.typedefs;
-
-// Without this doesn't compile for some reason
-export import <list>;
-export import <vector>;
 
 export namespace sofia {
     template<typename T>
@@ -94,8 +88,6 @@ export namespace sofia {
             iterator &operator=(iterator &&) noexcept = default;
 
         private:
-            using chunks_iterator = typename std::list<std::vector<value_type>>::iterator;
-
             explicit iterator(
                 m_chunk *chunk,
                 const usize chunks_size,
@@ -297,7 +289,7 @@ export namespace sofia {
             const value_type *data() const noexcept { return cdata(); }
 
             value_type *data() noexcept {
-                return reinterpret_cast<value_type*>(reinterpret_cast<char*>(this) + M_ALIGNED_CHUNK_SIZE);
+                return reinterpret_cast<value_type*>(reinterpret_cast<char*>(this) + sizeof(m_chunk));
             }
 
             // Modifiers
@@ -321,9 +313,6 @@ export namespace sofia {
 
         // Utilities
 
-        static constexpr usize M_CHUNK_ALIGNMENT = std::max(alignof(m_chunk), alignof(value_type));
-        static constexpr usize M_ALIGNED_CHUNK_SIZE = (sizeof(m_chunk) + M_CHUNK_ALIGNMENT - 1) & ~(M_CHUNK_ALIGNMENT - 1);
-
         void m_add_chunk_if_needed() {
             if (m_need_new_chunk())
                 m_add_chunk();
@@ -331,7 +320,7 @@ export namespace sofia {
 
         void m_add_chunk() {
             const auto data_size = m_chunk_size * sizeof(value_type);
-            const auto new_chunk_size = M_ALIGNED_CHUNK_SIZE + data_size;
+            const auto new_chunk_size = sizeof(m_chunk) + data_size;
             const auto new_last_chunk = reinterpret_cast<m_chunk*>(new char[new_chunk_size]);
 
             new_last_chunk->previous = m_last_chunk;
