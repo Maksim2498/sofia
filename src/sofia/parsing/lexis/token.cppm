@@ -22,8 +22,9 @@ export namespace sofia {
         using value_type = std::variant<
             std::monostate,
             bool,
-            u64, // For integers and references to the string pool
-            f32, f64
+            u64, // For all integers
+            f32, f64,
+            s8*
         >;
 
         // Constructors
@@ -77,19 +78,14 @@ export namespace sofia {
     private:
         // Validation
 
-        static bool m_type_matching_value(const token_type type, const value_type &value) {
+        static bool m_type_matching_value(const token_type type, const value_type &value) noexcept {
             switch (type) {
+                // Errors
+
                 case token_type::ERROR:
-                    return std::holds_alternative<std::monostate>(value) || std::holds_alternative<u64>(value);
+                    return std::holds_alternative<std::monostate>(value) || m_holds_not_null_s8(value);
 
-                case token_type::BOOL:
-                    return std::holds_alternative<bool>(value);
-
-                case token_type::F32:
-                    return std::holds_alternative<f32>(value);
-
-                case token_type::F64:
-                    return std::holds_alternative<f64>(value);
+                // String containing values
 
                 case token_type::COMMENT:
 
@@ -97,11 +93,21 @@ export namespace sofia {
                 case token_type::INDENT_GROW:
                 case token_type::INDENT_SHRINK:
 
+                case token_type::OPERATOR:
+
                 case token_type::ID:
 
                 case token_type::S8:
                 case token_type::S16:
                 case token_type::S32:
+                    return m_holds_not_null_s8(value);
+
+                // Booleans
+
+                case token_type::BOOL:
+                    return std::holds_alternative<bool>(value);
+
+                // Integers
 
                 case token_type::U8:
                 case token_type::U16:
@@ -114,13 +120,25 @@ export namespace sofia {
                 case token_type::I32:
                 case token_type::I64:
                 case token_type::ISIZE:
-
-                case token_type::OPERATOR:
                     return std::holds_alternative<u64>(value);
+
+                // Floating point values
+
+                case token_type::F32:
+                    return std::holds_alternative<f32>(value);
+
+                case token_type::F64:
+                    return std::holds_alternative<f64>(value);
+
+                // Rest
 
                 default:
                     return std::holds_alternative<std::monostate>(value);
             }
+        }
+
+        static bool m_holds_not_null_s8(const value_type &value) noexcept {
+            return std::holds_alternative<s8*>(value) && std::get<s8*>(value) != nullptr;
         }
 
         // Fields
