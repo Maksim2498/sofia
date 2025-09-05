@@ -27,7 +27,7 @@ export namespace sofia {
 
         // - Modules
 
-        PACKAGE, IMPORT,
+        IMPORT,
 
         // - Exception handling
 
@@ -145,7 +145,6 @@ export namespace sofia {
 
             // - Packages
 
-            case token_type::PACKAGE: return "\"package\"";
             case token_type::IMPORT: return "\"import\"";
 
             // - Exception handling
