@@ -52,8 +52,12 @@ export namespace sofia {
         }
 
     private:
+        // Fields
+
         chunked_arena<s8> m_values;
         std::unordered_map<sv8, s8*> m_lookup{};
+
+        // Insertion
 
         template<typename ValueType>
         requires std::convertible_to<ValueType, s8>
