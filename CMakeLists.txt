@@ -9,6 +9,19 @@ project(
     LANGUAGES CXX
 )
 
+# re2c lookup
+
+find_program(RE2C_EXECUTABLE re2c)
+
+if(NOT RE2C_EXECUTABLE)
+    message(FATAL_ERROR "re2c not found! Please install re2c.")
+endif()
+
+# - Tokenizer setup
+
+set(TOKENIZER_INPUT "${SRC_DIR}/sofia/parsing/lexis/tokenizer.cppm")
+set(TOKENIZER_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/tokenizer.gen.cppm")
+
 # Target setup
 
 # - Variables
@@ -26,7 +39,7 @@ file(GLOB_RECURSE MODULES CONFIGURE_DEPENDS "${SRC_DIR}/*.cppm")
 
 target_sources(
     "${TARGET_NAME}"
-    PUBLIC FILE_SET CXX_MODULES
+    PRIVATE FILE_SET CXX_MODULES
     FILES "${MODULES}"
 )
 

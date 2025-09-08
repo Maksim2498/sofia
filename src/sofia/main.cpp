@@ -1,3 +1,4 @@
+import <locale>;
 import <print>;
 import <vector>;
 
@@ -7,6 +8,8 @@ using namespace std;
 using namespace sofia;
 
 int main() {
+    locale::global(locale("en_US.UTF-8"));
+
     const auto source = "Hello, dear World!";
     string_pool string_pool;
     vector<source_message> messages;
