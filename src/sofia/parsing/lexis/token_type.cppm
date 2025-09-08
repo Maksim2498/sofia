@@ -18,6 +18,7 @@ export namespace sofia {
 
         NULL_LITERAL,
         BOOL,
+        C8, C16, C32,
         S8, S16, S32,
         U8, U16, U32, U64, USIZE,
         I8, I16, I32, I64, ISIZE,
@@ -111,6 +112,12 @@ export namespace sofia {
             // - Boolean
 
             case token_type::BOOL: return "<Bool>";
+
+            // - Characters
+
+            case token_type::C8: return "<C8>";
+            case token_type::C16: return "<C16>";
+            case token_type::C32: return "<C32>";
 
             // - Strings
 

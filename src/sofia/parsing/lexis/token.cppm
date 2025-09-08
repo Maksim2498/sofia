@@ -107,7 +107,11 @@ export namespace sofia {
                 case token_type::BOOL:
                     return std::holds_alternative<bool>(value);
 
-                // Integers
+                // Integers and characters
+
+                case token_type::C8:
+                case token_type::C16:
+                case token_type::C32:
 
                 case token_type::U8:
                 case token_type::U16:
